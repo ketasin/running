@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ダイエットによる走速度予測</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/vuetify@2.5.8/dist/vuetify.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.5.8/dist/vuetify.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f5f7fa;
+      }
+
+      #app {
+        max-width: 100%;
+        margin: 0 auto;
+        background-color: #fff;
+        border-radius: 4px;
+        padding: 0px;
+      }
+
+      h1 {
+        font-size: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .result-title {
+        font-size: 16px;
+        font-weight: bold;
+      }
+
+      .result-item {
+        margin-bottom: 10px;
+      }
+
+      .result-label {
+        font-weight: bold;
+        margin-right: 10px;
+      }
+      .result-value {
+        font-weight: bold;
+        margin-right: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <v-app>
+        <v-main>
+          <v-container>
+            <v-card>
+              <v-card-title class="headline">ダイエットによる走速度予測</v-card-title>
+              <v-card-text>
+                <v-form ref="form" @submit.prevent="calculate">
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model.number="D"
+                        label="どこかで走った距離（m）"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model.number="T"
+                        label="どこかで走った時間（分）"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model.number="W"
+                        label="どこかで走った時の体重（kg）"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model.number="Wd"
+                        label="期待するダイエット後の体重（kg）"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  <v-btn type="submit" color="primary">計算する</v-btn>
+                </v-form>
+              </v-card-text>
+
+            </v-card>
+
+            <div v-if="result">
+
+              <v-card>
+                <v-card-title class="headline">走った記録</v-card-title>
+
+                <v-card-text>
+                  <div class="result-item">
+                    <span class="result-text">走速度: </span
+                    ><span class="result-value">{{ SDisp }}</span>
+                  </div>
+
+                  <div class="result-item">
+                    <span class="result-text">総酸素消費量:</span>
+                    <span class="result-value">{{ OXY }}</span>
+                  </div>
+
+                  <div class="result-item">
+                    <span class="result-text">1kg当たり酸素消費量:</span>
+                    <span class="result-value">{{ CurrentOXY }} mL/kg/分</span>
+                  </div>
+              </v-card>
+
+              <v-card>
+                <v-card-title class="headline">ダイエット後の予測</v-card-title>
+
+                <v-card-text>
+                  <div class="result-item">
+                    <span class="result-text">1kg当たりの酸素消費量:</span>
+                    <span class="result-value">{{ ExpectedOXY }} mL/kg/分</span>
+                  </div>
+
+                  <div class="result-item">
+                    <span class="result-text">予測速度:</span>
+                    <span class="result-value">{{ ESDisp }}</span>
+                  </div>
+
+                  <div class="result-item">
+                    <div class="result-text">
+                      <span class="result-text">予測時間:</span>
+                      <span class="result-value">{{ ETbyMS }}</span>
+                    </div>
+                  </div>
+                </v-card-text>
+
+              </v-card>
+
+            </div>
+
+            <v-card>
+              <v-card-title>参考文献:</v-card-title>
+              <v-card-text>
+                田中宏暁
+                <a href="https://bookclub.kodansha.co.jp/product?item=0000226654" >「ランニングする前に読む本」</a>
+                <span>2017年 講談社</span>
+              <v-card-text>
+            </v-card>
+
+            <v-footer app>
+              <v-container fluid>
+                <v-row justify="center">
+                  <v-col>
+                    <div class="text-center">
+                      <v-footer-title>
+                        &copy; 2023 Ketasin. All rights reserved.
+                      </v-footer-title>
+                    </div>
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-footer>
+
+          </v-container>
+        </v-main>
+      </v-app>
+    </div>
+
+    <script>
+      new Vue({
+        el: "#app",
+        vuetify: new Vuetify(),
+        data: {
+          D: 42195,
+          T: 420,
+          W: 70,
+          Wd: 60,
+          result: false,
+
+          S: null,
+          SDisp: null,
+          OXY: null,
+          CurrentOXY: null,
+          ExpectedOXY: null,
+          ES: null,
+          ESDisp: null,
+          ET: null,
+          ETbyMS: null,
+        },
+        methods: {
+          calculate() {
+            const { D, T, W, Wd } = this;
+
+            if (D <= 0 || T <= 0 || W <= 0 || Wd <= 0)
+            {
+              result = false;
+              return;
+            }
+
+            const S = D / T;
+            const OXY = (0.2 * S + 3.5) * W;
+            const expectedOXY = OXY / Wd;
+            const ES = (expectedOXY - 3.5) / 0.2;
+            const ET = D / ES;
+
+            this.S = S.toFixed(2);
+            this.SDisp = this.meterByMinute2MinutesByKm(S);
+            this.OXY = OXY.toFixed(2);
+            this.CurrentOXY = (OXY / W).toFixed(2);
+            this.ExpectedOXY = expectedOXY.toFixed(2);
+            this.ES = ES.toFixed(2);
+            this.ESDisp = this.meterByMinute2MinutesByKm(ES);
+            this.ET = ET.toFixed(2);
+            this.ETbyMS = this.minutesToHours(ET);
+
+            this.result = true;
+          },
+          formatTime(time) {
+            const minutes = Math.floor(time);
+            const seconds = Math.round((time - minutes) * 60);
+            return `${minutes}分${seconds}秒`;
+          },
+          secondsToMinutes(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = Math.round(totalSeconds % 60);
+            return `${minutes}分${seconds}秒`;
+          },
+          minutesToHours(totalMinutes) {
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = Math.floor(totalMinutes % 60);
+            const seconds = Math.round(
+              (totalMinutes - Math.floor(totalMinutes)) * 60
+            );
+            return `${hours}時間${minutes}分${seconds}秒`;
+          },
+          meterByMinute2MinutesByKm(meterByMinute) {
+            const minutesByKm = (60 * 1000.0) / meterByMinute;
+            const x = this.secondsToMinutes(minutesByKm);
+            return `${x}/km`;
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
