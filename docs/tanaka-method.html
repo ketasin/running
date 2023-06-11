@@ -60,6 +60,9 @@
             <v-card>
               <v-card-title class="headline">ダイエットによる走速度予測</v-card-title>
               <v-card-text>
+                <div>走力が変わらない前提で、同じ距離を走ってダイエット後にどのぐらい速くなるか予測計算します。</div>
+              </v-card-text>
+              <v-card-text>
                 <v-form ref="form" @submit.prevent="calculate">
                   <v-row>
                     <v-col cols="12" md="6">
@@ -124,7 +127,7 @@
 
                 <v-card-text>
                   <div class="result-item">
-                    <span class="result-text">1kg当たりの酸素消費量:</span>
+                    <span class="result-text">1kg当たり酸素消費量:</span>
                     <span class="result-value">{{ ExpectedOXY }} mL/kg/分</span>
                   </div>
 
@@ -149,7 +152,7 @@
               <v-card-title>参考文献:</v-card-title>
               <v-card-text>
                 田中宏暁
-                <a href="https://bookclub.kodansha.co.jp/product?item=0000226654" >「ランニングする前に読む本」</a>
+                <a href="https://bookclub.kodansha.co.jp/product?item=0000226654" >「ランニングする前に読む本」</a>pp.112-113
                 <span>2017年 講談社</span>
               <v-card-text>
             </v-card>
