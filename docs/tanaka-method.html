@@ -11,30 +11,35 @@
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuetify@2.5.8/dist/vuetify.min.js"></script>
     <style>
-  .card-spacing {
-    margin-bottom: 20px;
-  }
+      .card-spacing {
+        margin-bottom: 20px;
+      }
 
-  .reference-card {
-    background-color: #f0f0f0;
-  }
+      .reference-card {
+        background-color: #f0f0f0;
+      }
 
-  #app {
-    background-color: #f0f0f0;
-  }
-</style>
-
+      #app {
+        background-color: #f0f0f0;
+      }
+    </style>
   </head>
 
   <body>
     <div id="app">
-      <v-app>
+      <div v-cloak v-if="!isMounted">起動中...</div>
+
+      <v-app v-else>
         <v-main>
           <v-container>
             <v-card class="card-spacing">
-              <v-card-title class="headline">ダイエットによる走速度予測</v-card-title>
+              <v-card-title class="headline"
+                >ダイエットによる走速度予測</v-card-title
+              >
               <v-card-text>
-                <div>走力が変わらない前提で、同じ距離を走ってダイエット後にどのぐらい速くなるか予測計算します。</div>
+                <div>
+                  走力が変わらない前提で、同じ距離を走ってダイエット後にどのぐらい速くなるか予測計算します。
+                </div>
               </v-card-text>
               <v-card-text>
                 <v-form ref="form" @submit.prevent="calculate">
@@ -71,13 +76,11 @@
                   <v-btn type="submit" color="primary">計算する</v-btn>
                 </v-form>
               </v-card-text>
-
             </v-card>
 
-            <div v-if="result">
+            <div v-cloak v-if="result">
               <v-card class="card-spacing">
                 <v-card-title class="headline">走った記録</v-card-title>
-
                 <v-card-text>
                   <div class="result-item">
                     <span class="result-text">走速度: </span
@@ -98,7 +101,6 @@
 
               <v-card class="card-spacing">
                 <v-card-title class="headline">ダイエット後の予測</v-card-title>
-
                 <v-card-text>
                   <div class="result-item">
                     <span class="result-text">1kg当たり酸素消費量:</span>
@@ -126,16 +128,15 @@
                 <span>田中宏暁</span>
                 <span>2017</span>
                 <span>
-                <a href="https://bookclub.kodansha.co.jp/product?item=0000226654" >「ランニングする前に読む本」</a>
+                  <a
+                    href="https://bookclub.kodansha.co.jp/product?item=0000226654"
+                    >「ランニングする前に読む本」</a
+                  >
                 </span>
                 <span>講談社</span>
-                <span>
-                コラム「マラソンタイム推定法」
-                </span>
-                <span>
-                pp.112-113
-                </span>
-              <v-card-text>
+                <span>コラム「マラソンタイム推定法」</span>
+                <span>pp.112-113</span>
+              </v-card-text>
             </v-card>
 
             <v-footer app>
@@ -151,7 +152,6 @@
                 </v-row>
               </v-container>
             </v-footer>
-
           </v-container>
         </v-main>
       </v-app>
@@ -167,7 +167,7 @@
           W: 70,
           Wd: 60,
           result: false,
-
+          isMounted: false,
           S: null,
           SDisp: null,
           OXY: null,
@@ -178,56 +178,42 @@
           ET: null,
           ETbyMS: null,
         },
+        mounted() {
+          this.isMounted = true;
+        },
         methods: {
           calculate() {
             const { D, T, W, Wd } = this;
 
-            if (D <= 0 || T <= 0 || W <= 0 || Wd <= 0)
-            {
-              result = false;
+            if (D <= 0 || T <= 0 || W <= 0 || Wd <= 0) {
+              this.result = false;
               return;
             }
 
-            const S = D / T;
-            const OXY = (0.2 * S + 3.5) * W;
-            const expectedOXY = OXY / Wd;
-            const ES = (expectedOXY - 3.5) / 0.2;
-            const ET = D / ES;
+            const S = D / (T / 60);
+            const SDisp = S.toFixed(2);
 
-            this.S = S.toFixed(2);
-            this.SDisp = this.meterByMinute2MinutesByKm(S);
-            this.OXY = OXY.toFixed(2);
-            this.CurrentOXY = (OXY / W).toFixed(2);
-            this.ExpectedOXY = expectedOXY.toFixed(2);
-            this.ES = ES.toFixed(2);
-            this.ESDisp = this.meterByMinute2MinutesByKm(ES);
-            this.ET = ET.toFixed(2);
-            this.ETbyMS = this.minutesToHours(ET);
+            const OXY = (0.1 * S + 3.5) * (W / 1000);
+            const CurrentOXY = OXY.toFixed(2);
+
+            const ExpectedOXY = (0.1 * S + 3.5) * (Wd / 1000);
+            const ES = (ExpectedOXY / (Wd / 1000 - 1)) * 1000;
+            const ESDisp = ES.toFixed(2);
+
+            const ET = (D / (ES / 60)).toFixed(2);
+            const ETbyMS = `${Math.floor(ET / 60)}分${Math.floor(ET % 60)}秒`;
+
+            this.S = S;
+            this.SDisp = SDisp;
+            this.OXY = OXY;
+            this.CurrentOXY = CurrentOXY;
+            this.ExpectedOXY = ExpectedOXY;
+            this.ES = ES;
+            this.ESDisp = ESDisp;
+            this.ET = ET;
+            this.ETbyMS = ETbyMS;
 
             this.result = true;
-          },
-          formatTime(time) {
-            const minutes = Math.floor(time);
-            const seconds = Math.round((time - minutes) * 60);
-            return `${minutes}分${seconds}秒`;
-          },
-          secondsToMinutes(totalSeconds) {
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = Math.round(totalSeconds % 60);
-            return `${minutes}分${seconds}秒`;
-          },
-          minutesToHours(totalMinutes) {
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = Math.floor(totalMinutes % 60);
-            const seconds = Math.round(
-              (totalMinutes - Math.floor(totalMinutes)) * 60
-            );
-            return `${hours}時間${minutes}分${seconds}秒`;
-          },
-          meterByMinute2MinutesByKm(meterByMinute) {
-            const minutesByKm = (60 * 1000.0) / meterByMinute;
-            const x = this.secondsToMinutes(minutesByKm);
-            return `${x}/km`;
           },
         },
       });
