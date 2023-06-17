@@ -89,7 +89,7 @@
 
                   <div class="result-item">
                     <span class="result-text">総酸素消費量:</span>
-                    <span class="result-value">{{ OXY }}</span>
+                    <span class="result-value">{{ OXY }} mL/分</span>
                   </div>
 
                   <div class="result-item">
@@ -190,30 +190,46 @@
               return;
             }
 
-            const S = D / (T / 60);
-            const SDisp = S.toFixed(2);
+            const S = D / T;
+            const OXY = (0.2 * S + 3.5) * W;
+            const expectedOXY = OXY / Wd;
+            const ES = (expectedOXY - 3.5) / 0.2;
+            const ET = D / ES;
 
-            const OXY = (0.1 * S + 3.5) * (W / 1000);
-            const CurrentOXY = OXY.toFixed(2);
-
-            const ExpectedOXY = (0.1 * S + 3.5) * (Wd / 1000);
-            const ES = (ExpectedOXY / (Wd / 1000 - 1)) * 1000;
-            const ESDisp = ES.toFixed(2);
-
-            const ET = (D / (ES / 60)).toFixed(2);
-            const ETbyMS = `${Math.floor(ET / 60)}分${Math.floor(ET % 60)}秒`;
-
-            this.S = S;
-            this.SDisp = SDisp;
-            this.OXY = OXY;
-            this.CurrentOXY = CurrentOXY;
-            this.ExpectedOXY = ExpectedOXY;
-            this.ES = ES;
-            this.ESDisp = ESDisp;
-            this.ET = ET;
-            this.ETbyMS = ETbyMS;
+            this.S = S.toFixed(2);
+            this.SDisp = this.meterByMinute2MinutesByKm(S);
+            this.OXY = OXY.toFixed(2);
+            this.CurrentOXY = (OXY / W).toFixed(2);
+            this.ExpectedOXY = expectedOXY.toFixed(2);
+            this.ES = ES.toFixed(2);
+            this.ESDisp = this.meterByMinute2MinutesByKm(ES);
+            this.ET = ET.toFixed(2);
+            this.ETbyMS = this.minutesToHours(ET);
 
             this.result = true;
+          },
+          formatTime(time) {
+            const minutes = Math.floor(time);
+            const seconds = Math.round((time - minutes) * 60);
+            return `${minutes}分${seconds}秒`;
+          },
+          secondsToMinutes(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = Math.round(totalSeconds % 60);
+            return `${minutes}分${seconds}秒`;
+          },
+          minutesToHours(totalMinutes) {
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = Math.floor(totalMinutes % 60);
+            const seconds = Math.round(
+              (totalMinutes - Math.floor(totalMinutes)) * 60
+            );
+            return `${hours}時間${minutes}分${seconds}秒`;
+          },
+          meterByMinute2MinutesByKm(meterByMinute) {
+            const minutesByKm = (60 * 1000.0) / meterByMinute;
+            const x = this.secondsToMinutes(minutesByKm);
+            return `${x}/km`;
           },
         },
       });
